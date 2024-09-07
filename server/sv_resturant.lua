@@ -1,31 +1,34 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+local lang = Config.Locale or 'en'  -- Utilise la langue configurée
+local Translations = LoadResourceFile(GetCurrentResourceName(), 'locales/'..lang..'.lua')
+local Locale = load(Translations)()
 
 Citizen.CreateThread(function()
     if not Businesses.Businesses or type(Businesses.Businesses) ~= "table" then
-        print("Error: Businesses.Businesses is not a valid table.")
+        print(Locale.error_invalid_business_table)  -- Utilisation de la traduction
         return
     end
 
     for job, details in pairs(Businesses.Businesses) do
         if not details.trays or type(details.trays) ~= "table" then
-            print("Warning: 'trays' for job '" .. job .. "' is not a valid table.")
+            print(string.format(Locale.warning_invalid_trays_table, job))  -- Utilisation de la traduction
             details.trays = {}
         end
 
         if not details.storage or type(details.storage) ~= "table" then
-            print("Warning: 'storage' for job '" .. job .. "' is not a valid table.")
+            print(string.format(Locale.warning_invalid_storage_table, job))  -- Utilisation de la traduction
             details.storage = {}
         end
 
         for trayIndex, _ in pairs(details.trays) do
             local trayId = "order-tray-" .. job .. '-' .. trayIndex
-            local trayLabel = "Order Tray - " .. details.jobDisplay .. " - " .. trayIndex
+            local trayLabel = string.format(Locale.order_tray_label, details.jobDisplay, trayIndex)  -- Utilisation de la traduction
             exports["ox_inventory"]:RegisterStash(trayId, trayLabel, 10, 50000)
         end
 
         for storageIndex, storageDetails in pairs(details.storage) do
             local storageId = "storage-" .. job .. '-' .. storageIndex
-            local storageLabel = "Storage - " .. details.jobDisplay .. ' - ' .. storageIndex
+            local storageLabel = string.format(Locale.storage_label, details.jobDisplay, storageIndex)  -- Utilisation de la traduction
             local slots = storageDetails.inventory.slots or 6
             local weight = (storageDetails.inventory.weight or 10) * 1000
             exports["ox_inventory"]:RegisterStash(storageId, storageLabel, slots, weight)
@@ -41,7 +44,7 @@ RegisterServerEvent('v-businesses:GiveItem', function(info)
 
     if not iteminfo or not iteminfo.requiredItems then
         TriggerClientEvent('ox_lib:notify', src, {
-            title = "Invalid item info.",
+            title = Locale.invalid_item_info,  -- Utilisation de la traduction
             type = "error",
             duration = 3000,
             position = "top-right"
@@ -51,7 +54,7 @@ RegisterServerEvent('v-businesses:GiveItem', function(info)
 
     if type(iteminfo.requiredItems) ~= "table" then
         TriggerClientEvent('ox_lib:notify', src, {
-            title = "Required items info is not a valid table.",
+            title = Locale.invalid_required_items_table,  -- Utilisation de la traduction
             type = "error",
             duration = 3000,
             position = "top-right"
@@ -63,7 +66,7 @@ RegisterServerEvent('v-businesses:GiveItem', function(info)
         local playerItem = player.Functions.GetItemByName(reqItem.item)
         if not playerItem or playerItem.amount < reqItem.amount * quantity then
             TriggerClientEvent('ox_lib:notify', src, {
-                title = "Insufficient required items to craft this item.",
+                title = Locale.insufficient_required_items,  -- Utilisation de la traduction
                 type = "error",
                 duration = 3000,
                 position = "top-right"
@@ -79,7 +82,7 @@ RegisterServerEvent('v-businesses:GiveItem', function(info)
     player.Functions.AddItem(iteminfo.item, quantity)
 
     TriggerClientEvent('ox_lib:notify', src, {
-        title = "Item crafted successfully!",
+        title = Locale.item_crafted_success,  -- Utilisation de la traduction
         type = "success",
         duration = 3000,
         position = "top-right"
