@@ -16,6 +16,7 @@ Config.Target = 'ox' -- qb or ox
 Config.Progress = 'ox' -- its ox get fucked
 Config.Notify = 'ox' -- its ox get fucked
 Config.Menu = 'ox' -- its ox get fucked
+Config.Locale = 'fr'  -- Options disponibles: 'fr', 'en',
 
 -- Restaurant Configuration
 Config.Restaurants = {
