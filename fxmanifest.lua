@@ -20,4 +20,9 @@ server_scripts {
     'server/*.lua',
     '@oxmysql/lib/MySQL.lua'
 }
+files {
+    'locales/en.lua',  -- Fichier anglais
+    'locales/fr.lua',  -- Fichier français
+    -- Ajoute d'autres langues si nécessaire
+}
 
