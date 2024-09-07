@@ -91,7 +91,41 @@ return {
     press_return_truck = "Press [E] to return the truck",
     returning_truck_trailer = "Returning Truck & Trailer...",
     truck_returned_header = "Truck Returned, Delivery Complete!",
-    truck_returned_content = "You have successfully returned the truck \n Thank You for your amazing work!"
+    truck_returned_content = "You have successfully returned the truck \n Thank You for your amazing work!",
+    open_tray = "Open Tray",
+    clock_in_out = "Clock In/Out",
+    sit_chair = "Sit Chair",
+    error_invalid_data_open_tray = "Error: Invalid data received for OpenTray event.",
+    error_invalid_data_open_storage = "Error: Invalid data received for OpenStorage event.",
+    invalid_preparation_table = "Invalid Preparation Table",
+    prepare_food = "Prepare Food",
+    error_invalid_data_prepare_food = "Error: Invalid data received for PrepareFood event.",
+    cooking = "Cooking",
+    food_quantity = "Food Quantity",
+    how_many_make = "How many would you like to make?",
+    invalid_input = "Invalid Input",
+    insufficient_items = "Insufficient Items",
+    not_enough_items = "You do not have enough items. Required: ",
+    invalid_chair_coords = "Invalid chair coordinates.",
+    too_far_from_chair = "You are too far from the chair.",
+    seat_taken = "This seat is taken.",
+    business_or_chair_not_found = "Business or chair info not found.",
+    sat_down_on_chair = "You sat down on the chair.",
+    no_info_provided = "No info provided.",
+    business_not_found = "Business not found.",
+    search = "Search",
+    search_item_to_sell = "Search for an item to sell",
+    search_items = "Search Items",
+    enter_item_name = "Enter Item name",
+    fruit_salesman = "Fruit Salesman",
+    sell_item = "Sell ",
+    amount_to_sell = "Amount to sell",
+    selling = "Selling ",
+    enter_valid_number = "Please enter a valid number greater than or equal to 1",
+    sale_canceled = "Sale canceled",
+    enter_valid_amount = "Please enter a valid amount to sell"
+
+
 
 
 }
