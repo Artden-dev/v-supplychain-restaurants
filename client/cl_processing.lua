@@ -1,7 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 -- Charger la langue depuis le fichier config
 local lang = Config.Locale or 'en'  -- Utilise la langue configurée
-local Translations = LoadResourceFile(GetCurrentResourceName(), 'locales/'..lang..'.lua')
+local Translations = LoadResourceFile(GetCurrentResourceName(), 'local/'..lang..'.lua')
 local Locale = load(Translations)()
 -- Opening Menu for Ordering Ingredients for Multiple Restaurants
 Citizen.CreateThread(function()
