@@ -1,4 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject();
+local lang = Config.Locale or 'en'  -- Utilise la langue configurée
+local Translations = LoadResourceFile(GetCurrentResourceName(), 'locales/'..lang..'.lua')
+local Locale = load(Translations)()
 
 Citizen.CreateThread(function()
     for k, v in pairs(Businesses.Businesses) do
@@ -30,19 +33,19 @@ Citizen.CreateThread(function()
                                 {
                                     event = "v-businesses:ChargeCustomer",
                                     icon = "fas fa-credit-card",
-                                    label = "Access Register",
+                                    label = Locale.access_register,  -- Utilisation de la traduction
                                     job = k,
                                 },
                                 {
                                     event = "v-businesses:ShowMenu",
                                     icon = "fas fa-user-check",
-                                    label = "Show Menu",
+                                    label = Locale.show_menu,  -- Utilisation de la traduction
                                     registerJob = k,
                                 },
                                 {
                                     event = "v-businesses:Pay",
                                     icon = "fas fa-user-check",
-                                    label = "Pay",
+                                    label = Locale.pay,  -- Utilisation de la traduction
                                     registerJob = k,
                                 },
                             },
@@ -58,7 +61,7 @@ Citizen.CreateThread(function()
                                 {
                                     name = "register-" .. k .. "-" .. a,
                                     icon = "fas fa-credit-card",
-                                    label = "Access Register",
+                                    label = Locale.access_register,  -- Utilisation de la traduction
                                     onSelect = function()
                                         TriggerEvent("v-businesses:ChargeCustomer", {registerJob = k})
                                     end,
@@ -67,7 +70,7 @@ Citizen.CreateThread(function()
                                 {
                                     name = "register-" .. k .. "-" .. a,
                                     icon = "fas fa-user-check",
-                                    label = "Show Menu",
+                                    label = Locale.show_menu,  -- Utilisation de la traduction
                                     onSelect = function()
                                         TriggerEvent("v-businesses:ShowMenu", {registerJob = k})
                                     end,
@@ -75,7 +78,7 @@ Citizen.CreateThread(function()
                                 {
                                     name = "register-" .. k .. "-" .. a,
                                     icon = "fas fa-user-check",
-                                    label = "Pay",
+                                    label = Locale.pay,  -- Utilisation de la traduction
                                     onSelect = function()
                                         TriggerEvent("v-businesses:Pay", {registerJob = k})
                                     end,
@@ -115,7 +118,7 @@ Citizen.CreateThread(function()
                                 {
                                     event = "v-businesses:OpenTray",
                                     icon = "fas fa-basket-shopping",
-                                    label = "Open Tray",
+                                    label = Locale.open_tray,  -- Utilisation de la traduction
                                     trayId = a,
                                     trayJob = k,
                                 },
@@ -132,7 +135,7 @@ Citizen.CreateThread(function()
                                 {
                                     name = "tray-" .. k .. "-" .. a,
                                     icon = "fas fa-basket-shopping",
-                                    label = "Open Tray",
+                                    label = Locale.open_tray,  -- Utilisation de la traduction
                                     onSelect = function()
                                         -- Ensure parameters are passed as an object
                                         TriggerEvent("v-businesses:OpenTray", { trayId = a, trayJob = k })
@@ -161,7 +164,7 @@ Citizen.CreateThread(function()
                         {
                             event = "v-businesses:ToggleClockIn",
                             icon = "fas fa-clock",
-                            label = "Clock In/Out",
+                            label = Locale.clock_in_out,  -- Utilisation de la traduction
                             job = k
                         },
                     },
@@ -177,7 +180,7 @@ Citizen.CreateThread(function()
                         {
                             name = "clockin-" .. k,
                             icon = "fas fa-clock",
-                            label = "Clock In/Out",
+                            label = Locale.clock_in_out,  -- Utilisation de la traduction
                             groups = k,
                             onSelect = function()
                                 TriggerEvent("v-businesses:ToggleClockIn", k)
@@ -227,7 +230,7 @@ Citizen.CreateThread(function()
                                     name = "storage-" .. k .. "-" .. a,
                                     icon = "fas fa-dolly",
                                     label = d.targetLabel,
-                                    groups = k, 
+                                    groups = k,
                                     onSelect = function()
                                         TriggerEvent("v-businesses:OpenStorage", { storageJob = k, storageId = a })
                                     end,
@@ -314,7 +317,7 @@ Citizen.CreateThread(function()
                                     chairId = a,
                                     chairJob = k,
                                     icon = "fas fa-couch",
-                                    label = "Sit Chair",
+                                    label = Locale.sit_chair,  -- Utilisation de la traduction
                                     coords = vector3(chair.coords.x, chair.coords.y, chair.coords.z),
                                 },
                             },
@@ -330,7 +333,7 @@ Citizen.CreateThread(function()
                                 {
                                     name = "chair-" .. k .. "-" .. a,
                                     icon = "fas fa-couch",
-                                    label = "Sit Chair",
+                                    label = Locale.sit_chair,  -- Utilisation de la traduction
                                     onSelect = function()
                                         TriggerEvent("v-businesses:SitChair", {
                                             coords = chair.coords,
@@ -352,9 +355,9 @@ Citizen.CreateThread(function()
     for businessName, business in pairs(Businesses.Businesses) do
         if business.blip then
             local blip = AddBlipForCoord(business.clockin.coords.x, business.clockin.coords.y, business.clockin.coords.z)
-            SetBlipSprite(blip, business.blip.sprite) 
-            SetBlipScale(blip, business.blip.scale) 
-            SetBlipColour(blip, business.blip.color) 
+            SetBlipSprite(blip, business.blip.sprite)
+            SetBlipScale(blip, business.blip.scale)
+            SetBlipColour(blip, business.blip.color)
             BeginTextCommandSetBlipName("STRING")
             AddTextComponentSubstringPlayerName(business.jobDisplay)
             EndTextCommandSetBlipName(blip)
@@ -383,7 +386,7 @@ AddEventHandler('v-businesses:OpenTray', function(info)
         local stashName = "order-tray-" .. jobName .. "-" .. trayId
         exports["ox_inventory"]:openInventory('stash', stashName)
     else
-        print("Error: Invalid data received for OpenTray event.")
+        print(Locale.error_invalid_data_open_tray)  -- Utilisation de la traduction
     end
 end)
 
@@ -399,7 +402,7 @@ AddEventHandler('v-businesses:OpenStorage', function(info)
         local stashName = "storage-" .. jobName .. "-" .. storageId
         exports["ox_inventory"]:openInventory('stash', stashName)
     else
-        print("Error: Invalid data received for OpenStorage event.")
+        print(Locale.error_invalid_data_open_storage)  -- Utilisation de la traduction
     end
 end)
 
@@ -433,7 +436,7 @@ AddEventHandler('v-businesses:PrepareFood', function(info)
 
         if not CookLoco then
             lib.notify({
-                title = 'Invalid Preparation Table',
+                title = Locale.invalid_preparation_table,  -- Utilisation de la traduction
                 type = 'error'
             })
             return
@@ -474,7 +477,7 @@ AddEventHandler('v-businesses:PrepareFood', function(info)
 
         lib.registerContext({
             id = 'food_preparation_menu',
-            title = 'Prepare Food',
+            title = Locale.prepare_food,  -- Utilisation de la traduction
             options = options,
             onExit = function()
                 ClearPedTasks(PlayerPedId())
@@ -483,15 +486,15 @@ AddEventHandler('v-businesses:PrepareFood', function(info)
 
         lib.showContext('food_preparation_menu')
     else
-        print("Error: Invalid data received for PrepareFood event.")
-        print("Received info:", type(info), json.encode(info)) 
+        print(Locale.error_invalid_data_prepare_food)  -- Utilisation de la traduction
+        print("Received info:", type(info), json.encode(info))
     end
 end)
 
 RegisterNetEvent('btrp-business:inputAmount', function(info)
     local iteminfo = info.iteminfo
-    local input = lib.inputDialog('Cooking', {
-        { type = 'number', label = 'Food Quantity', description = 'How many would you like to make?', min = 1, max = 10, icon = 'hashtag' }
+    local input = lib.inputDialog(Locale.cooking, {
+        { type = 'number', label = Locale.food_quantity, description = Locale.how_many_make, min = 1, max = 10, icon = 'hashtag' }
     })
 
     local quantity = tonumber(input[1])
@@ -499,7 +502,7 @@ RegisterNetEvent('btrp-business:inputAmount', function(info)
     if not quantity then
         ClearPedTasks(PlayerPedId())
         lib.notify({
-            title = 'Invalid Input',
+            title = Locale.invalid_input,  -- Utilisation de la traduction
             type = 'error'
         })
         return
@@ -522,8 +525,8 @@ RegisterNetEvent('btrp-business:inputAmount', function(info)
 
     if not hasAllRequiredItems then
         lib.notify({
-            title = 'Insufficient Items',
-            description = 'You do not have enough items. Required: ' .. requirements,
+            title = Locale.insufficient_items,  -- Utilisation de la traduction
+            description = Locale.not_enough_items .. requirements,  -- Utilisation de la traduction
             type = 'error'
         })
         return
@@ -568,7 +571,7 @@ RegisterNetEvent('v-businesses:SitChair', function(info)
 
     if not coords or not coords.x or not coords.y or not coords.z then
         lib.notify({
-            title = 'Invalid chair coordinates.',
+            title = Locale.invalid_chair_coords,  -- Utilisation de la traduction
             type = 'error'
         })
         return
@@ -585,7 +588,7 @@ RegisterNetEvent('v-businesses:SitChair', function(info)
     -- Check distance to chair
     if #(GetEntityCoords(ped) - adjustedCoords) > 2.0 then
         lib.notify({
-            title = 'You are too far from the chair.',
+            title = Locale.too_far_from_chair,  -- Utilisation de la traduction
             type = 'error'
         })
         return
@@ -603,7 +606,7 @@ RegisterNetEvent('v-businesses:SitChair', function(info)
 
     if seatTaken then
         lib.notify({
-            title = 'This seat is taken.',
+            title = Locale.seat_taken,  -- Utilisation de la traduction
             type = 'error'
         })
         return
@@ -625,7 +628,7 @@ RegisterNetEvent('v-businesses:SitChair', function(info)
         end
     else
         lib.notify({
-            title = 'Business or chair info not found.',
+            title = Locale.business_or_chair_not_found,  -- Utilisation de la traduction
             type = 'error'
         })
         return
@@ -639,7 +642,7 @@ RegisterNetEvent('v-businesses:SitChair', function(info)
     TaskStartScenarioAtPosition(ped, "PROP_HUMAN_SEAT_CHAIR_MP_PLAYER", adjustedCoords.x, adjustedCoords.y, adjustedCoords.z, chairFacing, 0, true, true)
 
     lib.notify({
-        title = 'You sat down on the chair.',
+        title = Locale.sat_down_on_chair,  -- Utilisation de la traduction
         type = 'success'
     })
 end)
@@ -648,7 +651,7 @@ RegisterNetEvent('v-businesses:ShowMenu')
 AddEventHandler('v-businesses:ShowMenu', function(info)
     -- Handle missing info scenario
     if not info then
-        print("No info provided")
+        print(Locale.no_info_provided)  -- Utilisation de la traduction
         return
     end
 
@@ -657,7 +660,7 @@ AddEventHandler('v-businesses:ShowMenu', function(info)
     local business = Businesses.Businesses[businessName]
 
     if not business then
-        print("Business not found")
+        print(Locale.business_not_found)  -- Utilisation de la traduction
         return
     end
 
@@ -723,7 +726,7 @@ Citizen.CreateThread(function()
                     type = "client",
                     event = "farming:openFruitMenu",
                     icon = "fas fa-shopping-basket",
-                    label = "Sell Items"
+                    label = Locale.sell_items  -- Utilisation de la traduction
                 },
             },
             distance = 2.0
@@ -738,7 +741,7 @@ Citizen.CreateThread(function()
                 {
                     name = 'fruit_sell_ped',
                     icon = "fas fa-shopping-basket",
-                    label = "Sell Items",
+                    label = Locale.sell_items, -- Utilisation de la traduction
                     onSelect = function()
                         TriggerEvent("farming:openFruitMenu")
                     end
@@ -772,57 +775,58 @@ AddEventHandler('farming:openFruitMenu', function()
         return filteredFruits
     end
 
-    -- Function to create the menu with the option to search
-    local function createMenu(searchQuery)
-        local options = {}
+-- Function to create the menu with the option to search
+local function createMenu(searchQuery)
+    local options = {}
 
-        -- Add the search button at the top
-        table.insert(options, {
-            title = 'Search',
-            description = 'Search for an item to sell',
-            icon = 'fas fa-search',
-            onSelect = function()
-                -- Show the input dialog for search
-                local input = lib.inputDialog('Search Items', {
-                    { type = 'input', label = 'Enter Item name' }
-                })
+    -- Add the search button at the top
+    table.insert(options, {
+        title = Locale.search,  -- Utilisation de la traduction
+        description = Locale.search_item_to_sell,  -- Utilisation de la traduction
+        icon = 'fas fa-search',
+        onSelect = function()
+            -- Show the input dialog for search
+            local input = lib.inputDialog(Locale.search_items, {  -- Utilisation de la traduction
+                { type = 'input', label = Locale.enter_item_name }  -- Utilisation de la traduction
+            })
 
-                -- If input is not canceled, filter and re-open the menu
-                if input and input[1] then
-                    createMenu(input[1])
-                end
+            -- If input is not canceled, filter and re-open the menu
+            if input and input[1] then
+                createMenu(input[1])
             end
-        })
-
-        -- Add the fruits based on the current search query
-        local filteredFruits = filterFruits(searchQuery or '')
-        for _, menuItem in ipairs(filteredFruits) do
-            table.insert(options, menuItem)
         end
+    })
 
-        -- Register and show the menu
-        lib.registerContext({
-            id = 'farming_fruit_menu_ox',
-            title = 'Fruit Salesman',
-            options = options
-        })
-
-        lib.showContext('farming_fruit_menu_ox')
+    -- Add the fruits based on the current search query
+    local filteredFruits = filterFruits(searchQuery or '')
+    for _, menuItem in ipairs(filteredFruits) do
+        table.insert(options, menuItem)
     end
 
-    -- Create and show the menu initially without any search query
-    createMenu()
+    -- Register and show the menu
+    lib.registerContext({
+        id = 'farming_fruit_menu_ox',
+        title = Locale.fruit_salesman,  -- Utilisation de la traduction
+        options = options
+    })
+
+    lib.showContext('farming_fruit_menu_ox')
+end
+
+-- Create and show the menu initially without any search query
+createMenu()
 end)
+
 
 RegisterNetEvent('farming:selectFruit')
 AddEventHandler('farming:selectFruit', function(data)
     local fruit = data.fruit
 
     -- Use ox_lib input dialog for both cases
-    local dialog = lib.inputDialog("Sell " .. Config.ItemsFarming[fruit].label, {
+    local dialog = lib.inputDialog(Locale.sell_item .. Config.ItemsFarming[fruit].label, {  -- Utilisation de la traduction
         {
             type = "number",
-            label = "Amount to sell",
+            label = Locale.amount_to_sell,  -- Utilisation de la traduction
             default = "1",
         }
     }, { allowCancel = true })
@@ -834,7 +838,7 @@ AddEventHandler('farming:selectFruit', function(data)
             -- Use ox_lib progress circle for the selling animation
             lib.progressCircle({
                 duration = Config.SellProgress,
-                label = 'Selling ' .. fruit,
+                label = Locale.selling .. fruit,  -- Utilisation de la traduction
                 canCancel = false,
                 position = 'bottom',
                 disable = {
@@ -852,16 +856,16 @@ AddEventHandler('farming:selectFruit', function(data)
         else
             -- Use ox_lib notification for invalid amount
             lib.notify({
-                title = 'Invalid Amount',
-                description = 'Please enter a valid number greater than or equal to 1',
+                title = Locale.invalid_amount,  -- Utilisation de la traduction
+                description = Locale.enter_valid_number,  -- Utilisation de la traduction
                 type = 'error'
             })
         end
     else
         -- Use ox_lib notification for sale cancellation
         lib.notify({
-            title = 'Sale canceled',
-            description = 'Please enter a valid amount to sell',
+            title = Locale.sale_canceled,  -- Utilisation de la traduction
+            description = Locale.enter_valid_amount,  -- Utilisation de la traduction
             type = 'error'
         })
     end
