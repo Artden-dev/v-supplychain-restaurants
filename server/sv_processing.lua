@@ -1,4 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+local lang = Config.Locale or 'en'  -- Utilise la langue configurée
+local Translations = LoadResourceFile(GetCurrentResourceName(), 'locales/'..lang..'.lua')
+local Locale = load(Translations)()
 
 -- Handle Order Submission
 RegisterNetEvent('restaurant:orderIngredients')
@@ -9,8 +12,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
     quantity = tonumber(quantity)
     if not quantity or quantity <= 0 then
         TriggerClientEvent('ox_lib:notify', playerId, {
-            title = 'Order Error',
-            description = 'The quantity provided is not valid. Please check and try again.',
+            title = Locale.order_error,  -- Utilisation de la traduction
+            description = Locale.invalid_quantity_provided,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -22,8 +25,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
     local restaurantJob = Config.Restaurants[restaurantId] and Config.Restaurants[restaurantId].job
     if not restaurantJob then
         TriggerClientEvent('ox_lib:notify', playerId, {
-            title = 'Order Error',
-            description = 'The restaurant ID is not valid. Please check and try again.',
+            title = Locale.order_error,  -- Utilisation de la traduction
+            description = Locale.invalid_restaurant_id,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -56,8 +59,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
                     -- Notify the player about the order status
                     if rowsChanged > 0 then
                         TriggerClientEvent('ox_lib:notify', playerId, {
-                            title = 'Order Submitted',
-                            description = string.format('You have successfully ordered %d of %s. Total cost: $%d', quantity, item.name, totalCost),
+                            title = Locale.order_submitted,  -- Utilisation de la traduction
+                            description = string.format(Locale.order_successful, quantity, item.name, totalCost),
                             type = 'success',
                             showDuration = true,
                             duration = 10000
@@ -66,8 +69,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
                         TriggerClientEvent('restaurant:showOrderDetails', playerId, item.name, quantity, totalCost)
                     else
                         TriggerClientEvent('ox_lib:notify', playerId, {
-                            title = 'Order Error',
-                            description = 'An error occurred while processing your order. Please try again.',
+                            title = Locale.order_error,  -- Utilisation de la traduction
+                            description = Locale.order_processing_error,  -- Utilisation de la traduction
                             type = 'error',
                             showDuration = true,
                             duration = 10000
@@ -76,8 +79,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
                 end)
             else
                 TriggerClientEvent('ox_lib:notify', playerId, {
-                    title = 'Insufficient Funds',
-                    description = 'You do not have enough money in your bank account to complete this order.',
+                    title = Locale.insufficient_funds,  -- Utilisation de la traduction
+                    description = Locale.not_enough_money,  -- Utilisation de la traduction
                     type = 'error',
                     showDuration = true,
                     duration = 10000
@@ -85,8 +88,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
             end
         else
             TriggerClientEvent('ox_lib:notify', playerId, {
-                title = 'Order Error',
-                description = 'An error occurred while processing your order. Please try again.',
+                title = Locale.order_error,  -- Utilisation de la traduction
+                description = Locale.order_processing_error,  -- Utilisation de la traduction
                 type = 'error',
                 showDuration = true,
                 duration = 10000
@@ -94,8 +97,8 @@ AddEventHandler('restaurant:orderIngredients', function(ingredient, quantity, re
         end
     else
         TriggerClientEvent('ox_lib:notify', playerId, {
-            title = 'Order Error',
-            description = 'The ingredient you provided is not found. Please check and try again.',
+            title = Locale.order_error,  -- Utilisation de la traduction
+            description = Locale.ingredient_not_found,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -110,8 +113,8 @@ AddEventHandler('update:stock', function(restaurantId)
 
     if not restaurantId then
         TriggerClientEvent('ox_lib:notify', source, {
-            title = 'Error',
-            description = 'Invalid restaurant ID for stock update.',
+            title = Locale.error,  -- Utilisation de la traduction
+            description = Locale.invalid_restaurant_id_stock_update,  -- Utilisation de la traduction
             type = 'error',
             position = 'top-right',
             showDuration = true,
@@ -149,7 +152,7 @@ AddEventHandler('update:stock', function(restaurantId)
                 totalCost = totalCost + orderCost
 
             else
-                print("Error: Invalid order data. Ingredient or quantity is nil.")
+                print(Locale.error_invalid_order_data)  -- Utilisation de la traduction
             end
         end
 
@@ -157,8 +160,8 @@ AddEventHandler('update:stock', function(restaurantId)
         MySQL.Async.transaction(queries, function(success)
             if success then
                 TriggerClientEvent('ox_lib:notify', src, {
-                    title = 'Stock Updated',
-                    description = 'Orders marked as complete and stock updated successfully!',
+                    title = Locale.stock_updated,  -- Utilisation de la traduction
+                    description = Locale.orders_complete_stock_updated,  -- Utilisation de la traduction
                     type = 'success',
                     position = 'top-right',
                     showDuration = true,
@@ -170,8 +173,8 @@ AddEventHandler('update:stock', function(restaurantId)
                 TriggerEvent('pay:driver', src, driverPayment)
             else
                 TriggerClientEvent('ox_lib:notify', src, {
-                    title = 'Error',
-                    description = 'Failed to update stock or mark orders as complete.',
+                    title = Locale.error,  -- Utilisation de la traduction
+                    description = Locale.failed_update_stock,  -- Utilisation de la traduction
                     type = 'error',
                     position = 'top-right',
                     showDuration = true,
@@ -188,11 +191,11 @@ AddEventHandler('pay:driver', function(driverId, amount)
     local xPlayer = QBCore.Functions.GetPlayer(driverId)
 
     if xPlayer then
-        xPlayer.Functions.AddMoney('bank', amount, "Payment for delivery")
+        xPlayer.Functions.AddMoney('bank', amount, Locale.payment_for_delivery)  -- Utilisation de la traduction
 
         TriggerClientEvent('ox_lib:notify', driverId, {
-            title = 'Payment Received',
-            description = 'You have been paid $' .. amount .. ' for the delivery.',
+            title = Locale.payment_received,  -- Utilisation de la traduction
+            description = string.format(Locale.paid_for_delivery, amount),  -- Utilisation de la traduction
             type = 'success',
             position = 'top-right',
             showDuration = true,
@@ -200,8 +203,8 @@ AddEventHandler('pay:driver', function(driverId, amount)
         })
     else
         TriggerClientEvent('ox_lib:notify', src, {
-            title = 'Error',
-            description = 'Unable to find the player to process payment.',
+            title = Locale.error,  -- Utilisation de la traduction
+            description = Locale.unable_to_find_player,  -- Utilisation de la traduction
             type = 'error',
             position = 'top-right',
             showDuration = true,
@@ -218,7 +221,7 @@ AddEventHandler('warehouse:getPendingOrders', function()
         ['@status'] = 'pending',
     }, function(results)
         if not results then
-            print("Error: No results returned from database.")
+            print(Locale.error_no_results_db)  -- Utilisation de la traduction
             return
         end
 
@@ -233,7 +236,7 @@ AddEventHandler('warehouse:getPendingOrders', function()
             if Config.Items[restaurantJob] then
 
             else
-                print("Error: Config.Items[", restaurantJob, "] does not exist.")
+                print(string.format(Locale.error_items_not_exist, restaurantJob))  -- Utilisation de la traduction
             end
 
             -- Get item details from Config.Items based on the restaurant's job
@@ -250,7 +253,7 @@ AddEventHandler('warehouse:getPendingOrders', function()
                     restaurantId = order.restaurant_id
                 })
             else
-                print("Error: Item not found for ingredient:", order.ingredient, "Restaurant job:", restaurantJob)
+                print(string.format(Locale.error_item_not_found, order.ingredient, restaurantJob))  -- Utilisation de la traduction
             end
         end
 
@@ -307,7 +310,7 @@ RegisterNetEvent('restaurant:withdrawStock')
 AddEventHandler('restaurant:withdrawStock', function(restaurantId, ingredient, amount)
     local src = source
     local player = QBCore.Functions.GetPlayer(src)
-    
+
     if player then
         for job, items in pairs(Config.Items) do
             for item, data in pairs(items) do
@@ -320,12 +323,12 @@ AddEventHandler('restaurant:withdrawStock', function(restaurantId, ingredient, a
         local restaurantJob = Config.Restaurants[restaurantId].job
 
         local itemData = Config.Items[restaurantJob] and Config.Items[restaurantJob][ingredient]
-        
+
         if itemData then
             local amountNum = tonumber(amount)
             if amountNum and amountNum > 0 then
                 player.Functions.AddItem(itemData.name, amountNum)
-                
+
                 MySQL.Async.execute('UPDATE stock SET quantity = quantity - @amount WHERE restaurant_id = @restaurant_id AND ingredient = @ingredient', {
                     ['@restaurant_id'] = restaurantId,
                     ['@ingredient'] = ingredient,
@@ -333,16 +336,16 @@ AddEventHandler('restaurant:withdrawStock', function(restaurantId, ingredient, a
                 }, function(rowsChanged)
                     if rowsChanged > 0 then
                         TriggerClientEvent('ox_lib:notify', src, {
-                            title = 'Stock Withdrawn',
-                            description = 'You have withdrawn ' .. amountNum .. ' of ' .. itemData.name,
+                            title = Locale.stock_withdrawn,  -- Utilisation de la traduction
+                            description = string.format(Locale.stock_withdraw_success, amountNum, itemData.name),  -- Utilisation de la traduction
                             type = 'success',
                             showDuration = true,
                             duration = 10000
                         })
                     else
                         TriggerClientEvent('ox_lib:notify', src, {
-                            title = 'Error',
-                            description = 'Unable to withdraw stock. Please try again.',
+                            title = Locale.error,  -- Utilisation de la traduction
+                            description = Locale.unable_to_withdraw_stock,  -- Utilisation de la traduction
                             type = 'error',
                             showDuration = true,
                             duration = 10000
@@ -351,8 +354,8 @@ AddEventHandler('restaurant:withdrawStock', function(restaurantId, ingredient, a
                 end)
             else
                 TriggerClientEvent('ox_lib:notify', src, {
-                    title = 'Error',
-                    description = 'Invalid amount for stock withdrawal.',
+                    title = Locale.error,  -- Utilisation de la traduction
+                    description = Locale.invalid_stock_withdrawal_amount,  -- Utilisation de la traduction
                     type = 'error',
                     showDuration = true,
                     duration = 10000
@@ -360,8 +363,8 @@ AddEventHandler('restaurant:withdrawStock', function(restaurantId, ingredient, a
             end
         else
             TriggerClientEvent('ox_lib:notify', src, {
-                title = 'Error',
-                description = 'Item data not found for ingredient: ' .. ingredient,
+                title = Locale.error,  -- Utilisation de la traduction
+                description = string.format(Locale.item_data_not_found, ingredient),  -- Utilisation de la traduction
                 type = 'error',
                 showDuration = true,
                 duration = 10000
@@ -369,8 +372,8 @@ AddEventHandler('restaurant:withdrawStock', function(restaurantId, ingredient, a
         end
     else
         TriggerClientEvent('ox_lib:notify', src, {
-            title = 'Error',
-            description = 'Player not found.',
+            title = Locale.error,  -- Utilisation de la traduction
+            description = Locale.player_not_found,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -390,7 +393,7 @@ AddEventHandler('warehouse:acceptOrder', function(orderId, restaurantId)
         ['@id'] = orderId,
     }, function(orderResults)
         if not orderResults or #orderResults == 0 then
-            print("Error: No order found with ID:", orderId)
+            print(string.format(Locale.error_no_order_found, orderId))  -- Utilisation de la traduction
             return
         end
 
@@ -401,7 +404,7 @@ AddEventHandler('warehouse:acceptOrder', function(orderId, restaurantId)
         local itemData = Config.Items[restaurantJob] and Config.Items[restaurantJob][order.ingredient:lower()]
 
         if not itemData then
-            print("Error: Item not found for ingredient:", order.ingredient)
+            print(string.format(Locale.error_item_not_found_ingredient, order.ingredient))  -- Utilisation de la traduction
             return
         end
 
@@ -409,10 +412,10 @@ AddEventHandler('warehouse:acceptOrder', function(orderId, restaurantId)
             ['@ingredient'] = order.ingredient:lower(),
         }, function(stockResults)
             if not stockResults or #stockResults == 0 then
-                print("Error: No stock information found for item:", order.ingredient)
+                print(string.format(Locale.error_no_stock_info, order.ingredient))  -- Utilisation de la traduction
                 TriggerClientEvent('ox_lib:notify', workerId, {
-                    title = 'Insufficient Stock',
-                    description = 'Not enough stock for ' .. order.ingredient .. '.',
+                    title = Locale.insufficient_stock,  -- Utilisation de la traduction
+                    description = string.format(Locale.not_enough_stock, order.ingredient),  -- Utilisation de la traduction
                     type = 'error',
                     position = 'top-right',
                     showDuration = true,
@@ -425,8 +428,8 @@ AddEventHandler('warehouse:acceptOrder', function(orderId, restaurantId)
 
             if stock < order.quantity then
                 TriggerClientEvent('ox_lib:notify', workerId, {
-                    title = 'Insufficient Stock',
-                    description = 'Not enough stock for ' .. order.ingredient .. '.',
+                    title = Locale.insufficient_stock,  -- Utilisation de la traduction
+                    description = string.format(Locale.not_enough_stock, order.ingredient),  -- Utilisation de la traduction
                     type = 'error',
                     position = 'top-right',
                     showDuration = true,
@@ -462,7 +465,7 @@ AddEventHandler('warehouse:acceptOrder', function(orderId, restaurantId)
 
                     -- Notify the client about successful stock update and order acceptance
                     TriggerClientEvent('ox_lib:notify', workerId, {
-                        description = 'Order accepted!',
+                        description = Locale.order_accepted,  -- Utilisation de la traduction
                         type = 'success',
                         position = 'top-right',
                         showDuration = true,
@@ -478,8 +481,8 @@ end)
 RegisterNetEvent('warehouse:denyOrder')
 AddEventHandler('warehouse:denyOrder', function(orderId)
     TriggerClientEvent('ox_lib:notify', workerId, {
-        title = 'Job Denied!',
-        description = 'Orders marked as complete and stock updated successfully!',
+        title = Locale.job_denied,  -- Utilisation de la traduction
+        description = Locale.order_denied_description,  -- Utilisation de la traduction
         type = 'error',
         position = 'top-right',
         showDuration = true,
@@ -532,8 +535,8 @@ AddEventHandler('farming:sellFruit', function(fruit, amount, targetCoords)
             end)
 
             local data = {
-                title = 'Sold ' .. amount .. ' ' .. fruit,
-                description = 'for $' .. total,
+                title = string.format(Locale.sold_fruit, amount, fruit),  -- Utilisation de la traduction
+                description = string.format(Locale.for_dollars, total),  -- Utilisation de la traduction
                 type = 'success',
                 duration = 9000,
                 position = 'top-right'
@@ -541,7 +544,7 @@ AddEventHandler('farming:sellFruit', function(fruit, amount, targetCoords)
             TriggerClientEvent('ox_lib:notify', src, data)
         else
             local data = {
-                title = 'You don\'t have enough ' .. fruit .. 's',
+                title = string.format(Locale.not_enough_fruit, fruit),  -- Utilisation de la traduction
                 type = 'error',
                 duration = 3000,
                 position = 'top-right'
@@ -550,7 +553,7 @@ AddEventHandler('farming:sellFruit', function(fruit, amount, targetCoords)
         end
     else
         local data = {
-            title = 'You don\'t have any ' .. fruit .. 's',
+            title = string.format(Locale.no_fruit, fruit),  -- Utilisation de la traduction
             type = 'error',
             duration = 3000,
             position = 'top-right'
