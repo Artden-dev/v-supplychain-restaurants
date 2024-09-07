@@ -1,5 +1,8 @@
 local QBCore = exports['qb-core']:GetCoreObject()
-
+-- Charger la langue depuis le fichier config
+local lang = Config.Locale or 'en'  -- Utilise la langue configurée
+local Translations = LoadResourceFile(GetCurrentResourceName(), 'locales/'..lang..'.lua')
+local Locale = load(Translations)()
 -- Opening Menu for Ordering Ingredients for Multiple Restaurants
 Citizen.CreateThread(function()
     for id, restaurant in pairs(Config.Restaurants) do
@@ -16,9 +19,9 @@ Citizen.CreateThread(function()
                         type = "client",
                         event = "restaurant:openOrderMenu",
                         icon = 'fas fa-laptop',
-                        label = 'Order Ingredients',
-                        restaurantId = id,  
-                        job = restaurant.job  
+                        label = Locale.order_ingredients,
+                        restaurantId = id,
+                        job = restaurant.job
                     }
                 },
                 distance = 2.5
@@ -33,7 +36,7 @@ Citizen.CreateThread(function()
                     {
                         name = "restaurant_computer_" .. id,
                         icon = 'fas fa-laptop',
-                        label = 'Order Ingredients',
+                        label = Locale.order_ingredients,
                         onSelect = function()
                             TriggerEvent('restaurant:openOrderMenu', {restaurantId = id})
                         end,
@@ -53,15 +56,15 @@ AddEventHandler('restaurant:openOrderMenu', function(data)
     local PlayerJob = PlayerData.job
 
     -- Check if the player is the boss
-    if not PlayerJob or not PlayerJob.name or not PlayerJob.isboss then 
+    if not PlayerJob or not PlayerJob.name or not PlayerJob.isboss then
         lib.notify({
-            title = 'Error',
-            description = 'You do not have permission to access this menu.',
+            title = Locale.error_title,
+            description = Locale.no_permission,
             type = 'error',
             showDuration = true,
             duration = 10000
         })
-        return 
+        return
     end
 
     local restaurantId = data.restaurantId or nil
@@ -91,8 +94,8 @@ AddEventHandler('restaurant:openOrderMenu', function(data)
 
         -- Add the "View Stock" option
         table.insert(options, {
-            title = 'View Stock',
-            description = 'Check current stock levels.',
+            title = Locale.view_stock,
+            description = Locale.check_stock,
             onSelect = function()
                 TriggerServerEvent('restaurant:requestStock', restaurantId)
             end
@@ -100,15 +103,15 @@ AddEventHandler('restaurant:openOrderMenu', function(data)
 
         -- Add the search button below "View Stock"
         table.insert(options, {
-            title = 'Search',
-            description = 'Search for an ingredient',
+            title = Locale.search_button,
+            description = Locale.search_description,
             icon = 'fas fa-search',
             onSelect = function()
                 -- Show the input dialog for search
-                local input = lib.inputDialog('Search Ingredients', {
-                    { type = 'input', label = 'Enter ingredient name' }
+                local input = lib.inputDialog(Locale.search_ingredients_title, {
+                    { type = 'input', label = Locale.enter_ingredient_label }
                 })
-                
+
                 -- If input is not canceled, filter and re-open the menu
                 if input and input[1] then
                     createMenu(input[1])
@@ -128,10 +131,10 @@ AddEventHandler('restaurant:openOrderMenu', function(data)
 
             table.insert(options, {
                 title = details.name,
-                description = "Price: $" .. details.price,
+                description = Locale.price_label .. ": $" .. details.price,  -- Utilisation de la traduction
                 onSelect = function()
-                    local input = lib.inputDialog('Order Ingredients', {
-                        {type = 'number', label = 'Enter Quantity', placeholder = 'Quantity', min = 1, max = 250, required = true}
+                    local input = lib.inputDialog(Locale.order_ingredients_title, {  -- Utilisation de la traduction
+                        {type = 'number', label = Locale.enter_quantity_label, placeholder = Locale.quantity_placeholder, min = 1, max = 250, required = true}  -- Utilisation de la traduction
                     })
 
                     if input and input[1] and tonumber(input[1]) > 0 then
@@ -140,8 +143,8 @@ AddEventHandler('restaurant:openOrderMenu', function(data)
                         TriggerServerEvent('restaurant:orderIngredients', ingredient, quantity, restaurantId)
                     else
                         lib.notify({
-                            title = 'Error',
-                            description = 'Invalid quantity entered.',
+                            title = Locale.error_title,  -- Utilisation de la traduction
+                            description = Locale.invalid_quantity,  -- Utilisation de la traduction
                             type = 'error',
                             showDuration = true,
                             duration = 10000
@@ -151,10 +154,9 @@ AddEventHandler('restaurant:openOrderMenu', function(data)
             })
         end
 
-        -- Register and show the menu
         lib.registerContext({
             id = 'order_menu',
-            title = 'Order Ingredients',
+            title = Locale.order_ingredients_title,  -- Utilisation de la traduction
             options = options
         })
 
@@ -173,19 +175,19 @@ AddEventHandler('restaurant:showResturantStock', function(stock, restaurantId)
     for ingredient, quantity in pairs(stock) do
         table.insert(options, {
             title = ingredient,
-            description = "Quantity: " .. quantity,
+            description = Locale.quantity_label .. ": " .. quantity,  -- Utilisation de la traduction
             onSelect = function()
-                local input = lib.inputDialog('Withdraw Stock', {
-                    {type = 'number', label = 'Enter Amount', placeholder = 'Amount', min = 1, max = quantity, required = true}
+                local input = lib.inputDialog(Locale.withdraw_stock_title, {  -- Utilisation de la traduction
+                    {type = 'number', label = Locale.enter_amount_label, placeholder = Locale.amount_placeholder, min = 1, max = quantity, required = true}  -- Utilisation de la traduction
                 })
-            
+
                 if input and input[1] and tonumber(input[1]) > 0 then
                     local amount = tonumber(input[1])
                     TriggerServerEvent('restaurant:withdrawStock', restaurantId, ingredient, amount)
                 else
                     lib.notify({
-                        title = 'Error',
-                        description = 'Invalid amount entered.',
+                        title = Locale.error_title,  -- Utilisation de la traduction
+                        description = Locale.invalid_amount,  -- Utilisation de la traduction
                         type = 'error',
                         showDuration = true,
                         duration = 10000
@@ -197,11 +199,12 @@ AddEventHandler('restaurant:showResturantStock', function(stock, restaurantId)
 
     lib.registerContext({
         id = 'stock_menu',
-        title = 'Current Stock',
+        title = Locale.current_stock_title,  -- Utilisation de la traduction
         options = options
     })
     lib.showContext('stock_menu')
 end)
+
 
 -- Warehouse Job Handling
 Citizen.CreateThread(function()
@@ -220,7 +223,7 @@ Citizen.CreateThread(function()
                         type = "client",
                         event = "warehouse:openProcessingMenu",
                         icon = 'fas fa-box',
-                        label = 'Process Orders',
+                        label = Locale.process_orders,
                     }
                 },
                 distance = 2.5
@@ -236,7 +239,7 @@ Citizen.CreateThread(function()
                     {
                         name = "warehouse_processing_" .. tostring(index),
                         icon = 'fas fa-box',
-                        label = 'Process Orders',
+                        label = Locale.process_orders,
                         onSelect = function()
                             TriggerEvent('warehouse:openProcessingMenu')
                         end
@@ -281,13 +284,13 @@ AddEventHandler('warehouse:openProcessingMenu', function()
 
     local options = {
         {
-            title = 'View Stock',
+            title = Locale.view_stock,  -- Utilisation de la traduction
             onSelect = function()
                 TriggerServerEvent('warehouse:getStocks')
             end
         },
         {
-            title = 'View Orders',
+            title = Locale.view_orders,  -- Utilisation de la traduction
             onSelect = function()
                 TriggerServerEvent('warehouse:getPendingOrders')
             end
@@ -297,7 +300,7 @@ AddEventHandler('warehouse:openProcessingMenu', function()
     -- Register and show the main menu
     lib.registerContext({
         id = 'main_menu',
-        title = 'Warehouse Menu',
+        title = Locale.warehouse_menu_title,  -- Utilisation de la traduction
         options = options
     })
     lib.showContext('main_menu')
@@ -310,8 +313,8 @@ AddEventHandler('warehouse:showOrderDetails', function(orders)
     if not orders or #orders == 0 then
         --print("No active orders found.")  -- Debug print
         lib.notify({
-            title = 'No Orders',
-            description = 'There are no active orders at the moment.',
+            title = Locale.no_orders,  -- Utilisation de la traduction
+            description = Locale.no_active_orders,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -323,11 +326,11 @@ AddEventHandler('warehouse:showOrderDetails', function(orders)
     for _, order in ipairs(orders) do
         local restaurantId = order.restaurantId
         local restaurantData = Config.Restaurants[restaurantId]
-        local restaurantName = restaurantData and restaurantData.name or "Unknown Business"
+        local restaurantName = restaurantData and restaurantData.name or Locale.unknown_business  -- Utilisation de la traduction
 
         table.insert(options, {
-            title = string.format("Item: %s | Quantity: %d", order.itemName, order.quantity),
-            description = string.format("Business: %s | Total Cost: $%d", restaurantName, order.totalCost),
+            title = string.format(Locale.item_quantity, order.itemName, order.quantity),  -- Utilisation de la traduction
+            description = string.format(Locale.business_total_cost, restaurantName, order.totalCost),  -- Utilisation de la traduction
             onSelect = function()
                 openOrderActionMenu(order, restaurantId)
             end
@@ -336,7 +339,7 @@ AddEventHandler('warehouse:showOrderDetails', function(orders)
 
     lib.registerContext({
         id = 'order_menu',
-        title = 'Active Orders',
+        title = Locale.active_orders,
         options = options
     })
     lib.showContext('order_menu')
@@ -347,17 +350,17 @@ function openOrderActionMenu(order, restaurantId)
     --print(string.format("Opening action menu for Order ID: %d, Restaurant ID: %d", order.id, restaurantId))  -- Debug print
     lib.registerContext({
         id = 'order_action_menu',
-        title = 'Order Actions',
+        title = Locale.order_actions,  -- Utilisation de la traduction
         options = {
             {
-                title = 'Accept Order',
+                title = Locale.accept_order,  -- Utilisation de la traduction
                 onSelect = function()
                     -- Trigger server event to accept the order
                     TriggerServerEvent('warehouse:acceptOrder', order.id, restaurantId)
                 end
             },
             {
-                title = 'Deny Order',
+                title = Locale.deny_order,  -- Utilisation de la traduction
                 onSelect = function()
                     -- Trigger server event to deny the order
                     TriggerServerEvent('warehouse:denyOrder', order.id, restaurantId)
@@ -376,8 +379,8 @@ AddEventHandler('restaurant:showStockDetails', function(stock, restaurantId)
     if not stock or next(stock) == nil then
         --print("No stock available.")  -- Debug print
         lib.notify({
-            title = 'No Stock',
-            description = 'There is no stock available in the warehouse.',
+            title = Locale.no_stock,  -- Utilisation de la traduction
+            description = Locale.no_stock_available,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -397,7 +400,7 @@ AddEventHandler('restaurant:showStockDetails', function(stock, restaurantId)
                 local itemData = itemNames[ingredient]
                 if itemData then
                     table.insert(filteredStock, {
-                        title = string.format("Ingredient: %s | Quantity: %d", itemData.label, quantity)
+                        title = string.format(Locale.ingredient_quantity, itemData.label, quantity)
                     })
                 end
             end
@@ -406,45 +409,45 @@ AddEventHandler('restaurant:showStockDetails', function(stock, restaurantId)
         return filteredStock
     end
 
-    -- Function to create the menu with the option to search
-    local function createMenu(searchQuery)
-        local options = {}
+-- Function to create the menu with the option to search
+local function createMenu(searchQuery)
+    local options = {}
 
-        -- Add the search button at the top
-        table.insert(options, {
-            title = 'Search',
-            description = 'Search for an ingredient',
-            icon = 'fas fa-search',
-            onSelect = function()
-                -- Show the input dialog for search
-                local input = lib.inputDialog('Search Stock', {
-                    { type = 'input', label = 'Enter ingredient name' }
-                })
+    -- Add the search button at the top
+    table.insert(options, {
+        title = Locale.search_button,  -- Utilisation de la traduction
+        description = Locale.search_description,  -- Utilisation de la traduction
+        icon = 'fas fa-search',
+        onSelect = function()
+            -- Show the input dialog for search
+            local input = lib.inputDialog(Locale.search_stock_title, {  -- Utilisation de la traduction
+                { type = 'input', label = Locale.enter_ingredient_label }  -- Utilisation de la traduction
+            })
 
-                -- If input is not canceled, filter and re-open the menu
-                if input and input[1] then
-                    createMenu(input[1])
-                end
+            -- If input is not canceled, filter and re-open the menu
+            if input and input[1] then
+                createMenu(input[1])
             end
-        })
-
-        -- Add the stock items based on the current search query
-        local filteredStock = filterStock(searchQuery or '')
-        for _, item in ipairs(filteredStock) do
-            table.insert(options, item)
         end
+    })
 
-        -- Register and show the context menu for stock
-        lib.registerContext({
-            id = 'stock_menu',
-            title = 'Warehouse Stock',
-            options = options
-        })
-        lib.showContext('stock_menu')
+    -- Add the stock items based on the current search query
+    local filteredStock = filterStock(searchQuery or '')
+    for _, item in ipairs(filteredStock) do
+        table.insert(options, item)
     end
 
-    -- Create and show the menu initially without any search query
-    createMenu()
+    -- Register and show the context menu for stock
+    lib.registerContext({
+        id = 'stock_menu',
+        title = Locale.warehouse_stock_title,  -- Utilisation de la traduction
+        options = options
+    })
+    lib.showContext('stock_menu')
+end
+
+-- Create and show the menu initially without any search query
+createMenu()
 end)
 
 -- Helper function for vector subtraction and distance calculation
@@ -469,7 +472,7 @@ local function getRandomInactiveWarehouseConfig()
 
     -- If no inactive warehouses are available, return nil
     if #availableWarehouses == 0 then
-        print("No inactive warehouses available.")
+        print(Locale.no_inactive_warehouses_available)
         return nil
     end
 
@@ -489,13 +492,13 @@ AddEventHandler('warehouse:spawnVehicles', function(restaurantId, orders)
     local warehouseConfig, warehouseIndex = getRandomInactiveWarehouseConfig()
 
     if not warehouseConfig then
-        print("Error: No inactive warehouse configuration found.")
+        print(Locale.no_inactive_warehouse_config)  -- Utilisation de la traduction
         return
     end
 
     lib.alertDialog({
-        header = 'Welcome to Your New Job!',
-        content = 'Today you will be delivering goods to a nearby restaurant. First, back the truck into the needed zone!',
+        header = Locale.welcome_job,  -- Utilisation de la traduction
+        content = Locale.delivery_instructions,  -- Utilisation de la traduction
         centered = true,
         cancel = true
     })
@@ -545,12 +548,12 @@ AddEventHandler('warehouse:spawnVehicles', function(restaurantId, orders)
     SetBlipColour(blip, 2)
     SetBlipAsShortRange(blip, true)
     BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString("Delivery Area")
+    AddTextComponentString(Locale.delivery_area)  -- Utilisation de la traduction
     EndTextCommandSetBlipName(blip)
 
     lib.notify({
-        title = 'Vehicles Spawned',
-        description = 'Truck and trailer have been spawned and attached! Head to the marker to park and load your cargo.',
+        title = Locale.vehicles_spawned,  -- Utilisation de la traduction
+        description = Locale.spawned_description,  -- Utilisation de la traduction
         type = 'success',
         showDuration = true,
         duration = 10000
@@ -573,8 +576,8 @@ AddEventHandler('warehouse:spawnVehicles', function(restaurantId, orders)
             if distToMarker < warehouseConfig.deliveryMarker.radius and GetEntitySpeed(trailer) < 0.1 then
                 if not notificationShown then
                     lib.notify({
-                        title = 'Trailer in Marker',
-                        description = 'Your trailer is within the delivery marker area and has been stopped.',
+                        title = Locale.trailer_in_marker,  -- Utilisation de la traduction
+                        description = Locale.trailer_stopped_description,  -- Utilisation de la traduction
                         type = 'success',
                         showDuration = true,
                         duration = 10000
@@ -593,8 +596,8 @@ AddEventHandler('warehouse:spawnVehicles', function(restaurantId, orders)
             -- Notify when the trailer is in the zone
             if not trailerInZoneNotificationShown and GetPedInVehicleSeat(truck, -1) == playerPed and distToMarker < warehouseConfig.deliveryMarker.radius then
                 lib.notify({
-                    title = 'Trailer in Zone',
-                    description = 'The trailer is in the delivery zone. You can exit the truck now.',
+                    title = Locale.trailer_in_zone,  -- Utilisation de la traduction
+                    description = Locale.trailer_in_zone_description,  -- Utilisation de la traduction
                     type = 'success',
                     showDuration = true,
                     duration = 10000
@@ -617,14 +620,14 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
 
     --print('Trailer:'.. trailer)
     lib.alertDialog({
-        header = 'Nice Job!',
-        content = 'Now that the truck is ready to be loaded \n Start picking up the pallets around you and bring them towards the trailer \n Good Luck!',
+        header = Locale.nice_job,  -- Utilisation de la traduction
+        content = Locale.truck_ready_content,  -- Utilisation de la traduction
         centered = true,
         cancel = true
     })
     DoScreenFadeOut(2500)
     Citizen.Wait(2500)
-    
+
     local playerPed = PlayerPedId()
     local forklift
     local pallets = {}
@@ -645,8 +648,8 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
 
     if not warehouseConfig then
         lib.notify({
-            title = 'Error',
-            description = 'No nearby warehouse found.',
+            title = Locale.error_title,  -- Utilisation de la traduction
+            description = Locale.no_warehouse_found,  -- Utilisation de la traduction
             type = 'error',
             showDuration = true,
             duration = 10000
@@ -663,10 +666,10 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
     forklift = CreateVehicle('forklift', warehouseConfig.forkliftPosition.x, warehouseConfig.forkliftPosition.y, warehouseConfig.forkliftPosition.z, warehouseConfig.heading, true, false)
     TaskWarpPedIntoVehicle(playerPed, forklift, -1)
     DoScreenFadeIn(2500)
-    
+
     lib.notify({
-        title = 'Forklift Spawned',
-        description = 'The forklift has been spawned. Use it to load pallets onto the truck.',
+        title = Locale.forklift_spawned,  -- Utilisation de la traduction
+        description = Locale.forklift_spawned_description,  -- Utilisation de la traduction
         type = 'success',
         showDuration = true,
         duration = 10000
@@ -710,8 +713,8 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
     end
 
     lib.notify({
-        title = 'Pallets Spawned',
-        description = 'The pallets have been spawned. Check your map for their locations.',
+        title = Locale.pallets_spawned,  -- Utilisation de la traduction
+        description = Locale.pallets_spawned_description,  -- Utilisation de la traduction
         type = 'success',
         showDuration = true,
         duration = 10000
@@ -729,7 +732,7 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
         if pallet then
             table.insert(pallets, pallet)
         else
-            print("Failed to spawn pallet at position:", pos.x, pos.y, pos.z)
+            print(string.format(Locale.failed_to_spawn_pallet, pos.x, pos.y, pos.z))  -- Utilisation de la traduction
         end
     end
 
@@ -748,13 +751,13 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
                 local forkliftPos = GetEntityCoords(forklift)
                 local forkliftZoneDist = vectorLength(vectorSubtract(forkliftPos, warehouseConfig.forkliftPosition))
                 if forkliftZoneDist < 3.0 then
-                    lib.showTextUI('[E] Return Forklift')
+                    lib.showTextUI('[E] ' .. Locale.return_forklift)  -- Utilisation de la traduction
                     if IsControlJustReleased(0, 38) then
                         lib.hideTextUI()
                         if lib.progressCircle({
-                            duration = 5000, 
+                            duration = 5000,
                             position = 'bottom',
-                            label = 'Returning Forklift...',
+                            label = Locale.returning_forklift,  -- Utilisation de la traduction
                             canCancel = false,
                             disable = { move = true, car = true, combat = true, sprint = true },
                             anim = { dict = 'anim@scripted@heist@ig3_button_press@male@', clip = 'button_press' }
@@ -763,8 +766,8 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
                                 DeleteVehicle(forklift)
                                 if not DoesEntityExist(forklift) then
                                     lib.notify({
-                                        title = 'Forklift Returned',
-                                        description = 'You have returned the forklift to the warehouse.',
+                                        title = Locale.forklift_returned_title,  -- Utilisation de la traduction
+                                        description = Locale.forklift_returned_description,  -- Utilisation de la traduction
                                         type = 'success',
                                         showDuration = true,
                                         duration = 10000
@@ -791,15 +794,15 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
                     local palletPos = GetEntityCoords(pallet)
                     local dist = vectorLength(vectorSubtract(palletPos, GetEntityCoords(forklift)))
                     local deliveryZoneDist = vectorLength(vectorSubtract(GetEntityCoords(forklift), deliveryMarkerConfig.position))
-                    
+
                     if dist < 3.0 and deliveryZoneDist < deliveryMarkerConfig.radius then
-                        lib.showTextUI('[E] Load Pallet')
+                        lib.showTextUI('[E] ' .. Locale.load_pallet)  -- Utilisation de la traduction
                         if IsControlJustReleased(0, 38) then
                             lib.hideTextUI()
                             if lib.progressCircle({
-                                duration = 5000, 
+                                duration = 5000,
                                 position = 'bottom',
-                                label = 'Loading Pallet...',
+                                label = Locale.loading_pallet,  -- Utilisation de la traduction
                                 canCancel = false,
                                 disable = { move = true, car = true, combat = true, sprint = true },
                                 anim = { dict = 'anim@scripted@heist@ig3_button_press@male@', clip = 'button_press' }
@@ -809,16 +812,16 @@ AddEventHandler('warehouse:loadingWithForklift', function(trailerConfig, deliver
                                 if palletIndex > #pallets then
                                     allPalletsLoaded = true
                                     lib.notify({
-                                        title = 'All Pallets Loaded',
-                                        description = 'All pallets have been successfully loaded onto the truck.',
+                                        title = Locale.all_pallets_loaded_title,  -- Utilisation de la traduction
+                                        description = Locale.all_pallets_loaded_description,  -- Utilisation de la traduction
                                         type = 'success',
                                         showDuration = true,
                                         duration = 10000
                                     })
                                 else
                                     lib.notify({
-                                        title = 'Pallet Loaded',
-                                        description = 'A pallet has been loaded. Continue loading the remaining pallets.',
+                                        title = Locale.pallet_loaded_title,  -- Utilisation de la traduction
+                                        description = Locale.pallet_loaded_description,  -- Utilisation de la traduction
                                         type = 'success',
                                         showDuration = true,
                                         duration = 10000
@@ -839,21 +842,21 @@ end)
 RegisterNetEvent('warehouse:startDelivery')
 AddEventHandler('warehouse:startDelivery', function(restaurantId, truck, orders, trailer)
     lib.alertDialog({
-        header = 'Amazing Work!',
-        content = 'Now that the truck is loaded  \n You are ready to head to the delivery location \n Check your GPS for more details!',
+        header = Locale.amazing_work,  -- Utilisation de la traduction
+        content = Locale.truck_loaded_content,  -- Utilisation de la traduction
         centered = true,
         cancel = true
     })
-    
+
     --print("Received orders:", json.encode(orders))
     --print(restaurantId)
-    
+
     local deliveryPosition = Config.Restaurants[restaurantId].delivery
 
     -- Notify the player to start the delivery
     lib.notify({
-        title = 'Delivery Started',
-        description = 'Park the truck at the delivery location, then exit and pick up the boxes.',
+        title = Locale.delivery_started_title,  -- Utilisation de la traduction
+        description = Locale.delivery_started_description,  -- Utilisation de la traduction
         type = 'success',
         showDuration = true,
         duration = 10000
@@ -916,8 +919,8 @@ end)
 RegisterNetEvent('warehouse:deliverBoxes')
 AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, trailer)
     lib.alertDialog({
-        header = 'Wow!',
-        content = 'Now that you have arrived \n Grab boxes from the trailer and walk them inside \n Look for the zone to deliver the boxes!',
+        header = Locale.wow,  -- Utilisation de la traduction
+        content = Locale.arrived_grab_boxes,  -- Utilisation de la traduction
         centered = true,
         cancel = true
     })
@@ -942,8 +945,8 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
 
     -- Notify the player that they can start delivering boxes
     lib.notify({
-        title = 'Delivery Location Reached',
-        description = 'You can now pick up the boxes and deliver them.',
+        title = Locale.delivery_location_reached,  -- Utilisation de la traduction
+        description = Locale.pick_up_boxes,  -- Utilisation de la traduction
         type = 'success',
         showDuration = true,
         duration = 10000
@@ -994,7 +997,7 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
             if #(playerCoords - trailerBackPosition) < 2.0 then
                 if not hasBox then
                     -- Show the text UI for picking up the box
-                    lib.showTextUI('[E] Pick Up Box')
+                    lib.showTextUI('[E] ' .. Locale.pick_up_box)  -- Utilisation de la traduction
                 end
 
                 if IsControlJustReleased(0, 38) then -- E key
@@ -1005,7 +1008,7 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
                     if lib.progressCircle({
                         duration = 3000, -- 3 seconds to pick up a box
                         position = 'bottom',
-                        label = 'Unloading Box...',
+                        label = Locale.unloading_box,  -- Utilisation de la traduction
                         canCancel = false,
                         disable = {
                             move = true,
@@ -1029,7 +1032,7 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
                         boxProp = CreateObject(model, coords.x, coords.y, coords.z, true, true, true)
 
                         -- Attach the box to the player's hand (bone index 60309)
-                        AttachEntityToEntity(boxProp, playerPed, GetPedBoneIndex(playerPed, 60309), 
+                        AttachEntityToEntity(boxProp, playerPed, GetPedBoneIndex(playerPed, 60309),
                             0.1, 0.2, 0.25,  -- Position offsets
                             -90.0, 0.0, 0.0,  -- Rotation
                             true, true, false, true, 1, true
@@ -1050,8 +1053,8 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
 
                         -- Notify player to deliver the box
                         lib.notify({
-                            title = 'Box Picked Up',
-                            description = 'Deliver the box to the marked location.',
+                            title = Locale.box_picked_up,  -- Utilisation de la traduction
+                            description = Locale.deliver_box_description,  -- Utilisation de la traduction
                             type = 'info',
                             showDuration = true,
                             duration = 10000
@@ -1066,7 +1069,7 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
             -- Check if player is near the delivery location
             if #(playerCoords - deliveryFootPosition) < 2.0 and hasBox then
                 -- Show the text UI for delivering the box
-                lib.showTextUI('[E] Deliver Box')
+                lib.showTextUI('[E] ' .. Locale.deliver_box)  -- Utilisation de la traduction
 
                 if IsControlJustReleased(0, 38) then -- E key
                     -- Hide the text UI when the action starts
@@ -1076,7 +1079,7 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
                     if lib.progressCircle({
                         duration = 3000, -- 3 seconds to deliver the box
                         position = 'bottom',
-                        label = 'Delivering Package...',
+                        label = Locale.delivering_package,  -- Utilisation de la traduction
                         canCancel = false,
                         disable = {
                             move = true,
@@ -1102,8 +1105,8 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
 
                         -- Notify player to return and pick up the next box
                         lib.notify({
-                            title = 'Box Delivered',
-                            description = 'Return to the truck and pick up the next box.',
+                            title = Locale.box_delivered,  -- Utilisation de la traduction
+                            description = Locale.return_to_truck,  -- Utilisation de la traduction
                             type = 'success',
                             showDuration = true,
                             duration = 10000
@@ -1113,8 +1116,8 @@ AddEventHandler('warehouse:deliverBoxes', function(restaurantId, truck, orders, 
                         if boxCount >= maxBoxes then
                             -- Notify player that delivery is complete
                             lib.notify({
-                                title = 'Delivery Complete',
-                                description = 'You have delivered all boxes. Return the truck to the warehouse.',
+                                title = Locale.delivery_complete,  -- Utilisation de la traduction
+                                description = Locale.return_truck_to_warehouse,  -- Utilisation de la traduction
                                 type = 'success',
                                 showDuration = true,
                                 duration = 10000
@@ -1146,8 +1149,8 @@ end)
 RegisterNetEvent('warehouse:returnTruck')
 AddEventHandler('warehouse:returnTruck', function(truck, restaurantId, orders)
     lib.alertDialog({
-        header = 'Delivery Complete',
-        content = 'Great Work! \n Now start to drive back to the warehouse! \n Check your GPS for directions!',
+        header = Locale.delivery_complete_header,  -- Utilisation de la traduction
+        content = Locale.drive_back_to_warehouse,  -- Utilisation de la traduction
         centered = true,
         cancel = true
     })
@@ -1190,7 +1193,7 @@ AddEventHandler('warehouse:returnTruck', function(truck, restaurantId, orders)
 
             if distanceToReturnPos < 2.0 and IsPedInVehicle(playerPed, truck, false) then
                 -- Show the text UI for returning the truck
-                lib.showTextUI('Press [E] to return the truck')
+                lib.showTextUI(Locale.press_return_truck)  -- Utilisation de la traduction
 
                 if IsControlJustReleased(0, 38) then -- E key
                     -- Hide the text UI when the action starts
@@ -1200,7 +1203,7 @@ AddEventHandler('warehouse:returnTruck', function(truck, restaurantId, orders)
                     if lib.progressCircle({
                         duration = 3000, -- 3 seconds to return the truck
                         position = 'bottom',
-                        label = 'Returning Truck & Trailer...',
+                        label = Locale.returning_truck_trailer,  -- Utilisation de la traduction
                         canCancel = false,
                         disable = {
                             move = true,
@@ -1215,8 +1218,8 @@ AddEventHandler('warehouse:returnTruck', function(truck, restaurantId, orders)
                     }) then
 
                         lib.alertDialog({
-                            header = 'Truck Returned, Delivery Complete!',
-                            content = 'You have successfully returned the truck \n Thank You for your amazing work!',
+                            header = Locale.truck_returned_header,  -- Utilisation de la traduction
+                            content = Locale.truck_returned_content,  -- Utilisation de la traduction
                             centered = true,
                             cancel = true
                         })
@@ -1255,3 +1258,113 @@ function DrawText3D(x, y, z, text)
         DrawText(_x, _y)
     end
 end
+
+-- Ajout d'un shop a la warehouse
+
+local shopOptions = {}
+
+-- Fonction pour créer le menu de la boutique
+local function createShopMenu(searchQuery)
+    local options = {}
+
+    -- Ajouter une option de recherche
+    table.insert(options, {
+        title = 'Recherche',
+        description = 'Rechercher un article',
+        icon = 'fas fa-search',
+        onSelect = function()
+            local input = lib.inputDialog('Rechercher des articles', {
+                { type = 'input', label = 'Entrez le nom de l\'article' }
+            })
+
+            if input and input[1] then
+                createShopMenu(input[1])  -- Relance la création du menu avec la recherche
+            end
+        end
+    })
+
+    -- Filtrer et trier les articles en fonction de la requête de recherche
+    local filteredItems = {}
+    for job, items in pairs(Config.Items) do
+        for itemName, itemData in pairs(items) do
+            if not searchQuery or string.find(string.lower(itemData.name), string.lower(searchQuery)) then
+                table.insert(filteredItems, {ingredient = itemName, details = itemData})
+            end
+        end
+    end
+    table.sort(filteredItems, function(a, b)
+        return a.details.name < b.details.name
+    end)
+
+    -- Ajouter les articles filtrés au menu
+    for _, item in ipairs(filteredItems) do
+        local ingredient = item.ingredient
+        local details = item.details
+
+        table.insert(options, {
+            title = details.name,
+            description = "Prix : $" .. details.price,
+            onSelect = function()
+                local input = lib.inputDialog('Acheter un article', {
+                    {type = 'number', label = 'Entrez la quantité', placeholder = 'Quantité', min = 1, max = 250, required = true}
+                })
+
+                if input and input[1] and tonumber(input[1]) > 0 then
+                    local quantity = tonumber(input[1])
+                    TriggerServerEvent('warehouse:buyItem', ingredient, details.price, quantity)
+                else
+                    lib.notify({
+                        title = 'Erreur',
+                        description = 'Quantité invalide saisie.',
+                        type = 'error',
+                        showDuration = true,
+                        duration = 10000
+                    })
+                end
+            end
+        })
+    end
+
+    -- Enregistrer et afficher le menu
+    lib.registerContext({
+        id = 'warehouse_shop',
+        title = 'Boutique du Magasin',
+        options = options
+    })
+
+    lib.showContext('warehouse_shop')
+end
+
+local warehouseShopCoords = vec3(1238.27, -3111.44, 5.53)
+
+-- Ajouter un ped à la boutique
+local pedModel = GetHashKey("mp_m_shopkeep_01") -- Modèle du ped (ex : un vendeur)
+RequestModel(pedModel)
+while not HasModelLoaded(pedModel) do
+    Wait(100)
+end
+
+local ped = CreatePed(4, pedModel, warehouseShopCoords.x, warehouseShopCoords.y, warehouseShopCoords.z, 0.0, false, true)
+SetEntityAsMissionEntity(ped, true, true)
+SetBlockingOfNonTemporaryEvents(ped, true)
+FreezeEntityPosition(ped, true)
+SetEntityInvincible(ped, true)
+
+-- Ajout de la zone cible pour interagir avec le ped
+exports.ox_target:addBoxZone({
+    coords = warehouseShopCoords,
+    size = vec3(1.5, 1.5, 1.0),
+    rotation = 0.0,
+    debug = false,
+    options = {
+        {
+            name = "warehouse_shop",
+            icon = 'fas fa-shopping-cart',
+            label = 'Réapprovisionner',
+            onSelect = function()
+                print("Tentative d'ouverture du menu warehouse_shop")  -- Print de débogage
+                createShopMenu()  -- Ouvre le menu de la boutique
+            end
+        }
+    }
+})  -- Fin du addBoxZone
