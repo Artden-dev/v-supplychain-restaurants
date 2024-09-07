@@ -1,6 +1,6 @@
 local QBCore = exports['qb-core']:GetCoreObject();
 local lang = Config.Locale or 'en'  -- Utilise la langue configurée
-local Translations = LoadResourceFile(GetCurrentResourceName(), 'locales/'..lang..'.lua')
+local Translations = LoadResourceFile(GetCurrentResourceName(), 'local/'..lang..'.lua')
 local Locale = load(Translations)()
 
 Citizen.CreateThread(function()
