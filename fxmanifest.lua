@@ -21,8 +21,8 @@ server_scripts {
     '@oxmysql/lib/MySQL.lua'
 }
 files {
-    'locales/en.lua',  -- Fichier anglais
-    'locales/fr.lua',  -- Fichier français
+    'local/en.lua',  -- Fichier anglais
+    'local/fr.lua',  -- Fichier français
     -- Ajoute d'autres langues si nécessaire
 }
 
